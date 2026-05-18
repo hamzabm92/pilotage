@@ -26,7 +26,6 @@ function OnbWizard({ onDone }) {
   function goBack() { setStep(s => Math.max(s - 1, 1)); }
 
   function handleFinish() {
-    // Commit everything to store
     dispatch('SET_PROFILE', { profileType, objectifPrincipal, country, currency: (COUNTRIES.find(c => c.code === country) || {}).symbol || '€' });
     dispatch('FINISH_ONBOARDING', {
       revenuMensuel: Number(figures.revenuMensuel) || 0,
@@ -47,17 +46,24 @@ function OnbWizard({ onDone }) {
   const previewPatrimoine = (Number(figures.cashPerso) || 0) + (Number(figures.investTotal) || 0) + (Number(figures.tresorerie) || 0);
   const previewInsightTone = previewRunwayPerso < 3 ? 'risk' : previewRunwayPerso < 6 ? 'watch' : 'safe';
 
-  const wrapStyle = {
-    height: '100%', overflowY: 'auto',
-    padding: '16px 20px 40px',
-    fontFamily: 'Inter, system-ui, sans-serif',
-    display: 'flex', flexDirection: 'column',
-  };
+  // Shell: scrollable content area + sticky footer buttons
+  function StepShell({ footer, children }) {
+    return (
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: 'Inter, system-ui, sans-serif' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 8px' }}>
+          {children}
+        </div>
+        <div style={{ padding: '10px 20px 32px', background: '#FAF8F1', borderTop: '1px solid #f0ede6' }}>
+          {footer}
+        </div>
+      </div>
+    );
+  }
 
   // ── Step 1: Account & country ──────────────────────────────────
   if (step === 1) {
     return (
-      <div style={wrapStyle}>
+      <StepShell footer={<Btn onClick={goNext} accent="pro">Continuer →</Btn>}>
         <StepDots step={1} total={totalSteps} />
         <div style={{ fontSize: 11, color: '#7a7770', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Étape 1 / 6</div>
         <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.2, marginBottom: 4 }}>Ton compte</div>
@@ -94,10 +100,7 @@ function OnbWizard({ onDone }) {
             </Card>
           ) : null;
         })()}
-
-        <div style={{ flex: 1 }} />
-        <Btn onClick={goNext} accent="pro">Continuer →</Btn>
-      </div>
+      </StepShell>
     );
   }
 
@@ -112,25 +115,26 @@ function OnbWizard({ onDone }) {
       { id: 'curieux', emoji: '○', label: 'Curieux', sub: 'juste suivre mon patrimoine' },
     ];
     return (
-      <div style={wrapStyle}>
+      <StepShell footer={
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Btn variant="secondary" onClick={goBack} style={{ flex: 1 }}>← Retour</Btn>
+          <Btn onClick={goNext} accent="pro" disabled={!profileType} style={{ flex: 2 }}>Continuer →</Btn>
+        </div>
+      }>
         <StepDots step={2} total={totalSteps} />
         <div style={{ fontSize: 11, color: '#7a7770', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Étape 2 / 6</div>
         <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.2, marginBottom: 6 }}>Quel est ton profil ?</div>
         <div style={{ fontSize: 13, color: '#6b6b6b', marginBottom: 14, lineHeight: 1.4 }}>
           Sélectionne ce qui te ressemble le plus. Tu pourras affiner ensuite.
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {profiles.map(p => (
             <ChoiceCard key={p.id} emoji={p.emoji} sub={p.sub} selected={profileType === p.id} accent={p.id === 'freelance-societe' ? 'pro' : undefined} onClick={() => setProfileType(p.id)}>
               {p.label}
             </ChoiceCard>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-          <Btn variant="secondary" onClick={goBack} style={{ flex: 1 }}>← Retour</Btn>
-          <Btn onClick={goNext} accent="pro" disabled={!profileType} style={{ flex: 2 }}>Continuer →</Btn>
-        </div>
-      </div>
+      </StepShell>
     );
   }
 
@@ -150,25 +154,26 @@ function OnbWizard({ onDone }) {
       setSelectedComptes(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
     }
     return (
-      <div style={wrapStyle}>
+      <StepShell footer={
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Btn variant="secondary" onClick={goBack} style={{ flex: 1 }}>← Retour</Btn>
+          <Btn onClick={goNext} accent="pro" style={{ flex: 2 }}>Continuer →</Btn>
+        </div>
+      }>
         <StepDots step={3} total={totalSteps} />
         <div style={{ fontSize: 11, color: '#7a7770', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Étape 3 / 6</div>
         <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.2, marginBottom: 6 }}>Que veux-tu suivre ?</div>
         <div style={{ fontSize: 13, color: '#6b6b6b', marginBottom: 14, lineHeight: 1.4 }}>
           Coche tout ce que tu possèdes. Détails à remplir plus tard.
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, flex: 1 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {opts.map(o => (
             <ChoiceCard key={o.id} selected={selectedComptes.includes(o.id)} accent={o.accent} onClick={() => toggle(o.id)}>
               {o.label}
             </ChoiceCard>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-          <Btn variant="secondary" onClick={goBack} style={{ flex: 1 }}>← Retour</Btn>
-          <Btn onClick={goNext} accent="pro" style={{ flex: 2 }}>Continuer →</Btn>
-        </div>
-      </div>
+      </StepShell>
     );
   }
 
@@ -183,25 +188,26 @@ function OnbWizard({ onDone }) {
       { id: 'liberte', emoji: '∞', label: 'Liberté financière', sub: 'long terme · revenus passifs' },
     ];
     return (
-      <div style={wrapStyle}>
+      <StepShell footer={
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Btn variant="secondary" onClick={goBack} style={{ flex: 1 }}>← Retour</Btn>
+          <Btn onClick={goNext} accent="pro" disabled={!objectifPrincipal} style={{ flex: 2 }}>Continuer →</Btn>
+        </div>
+      }>
         <StepDots step={4} total={totalSteps} />
         <div style={{ fontSize: 11, color: '#7a7770', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Étape 4 / 6</div>
         <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.2, marginBottom: 6 }}>Quel est ton objectif principal ?</div>
         <div style={{ fontSize: 13, color: '#6b6b6b', marginBottom: 14, lineHeight: 1.4 }}>
           Un seul, pour l'instant. On en ajoutera d'autres ensuite.
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {goals.map(g => (
             <ChoiceCard key={g.id} emoji={g.emoji} sub={g.sub} selected={objectifPrincipal === g.id} onClick={() => setObjectifPrincipal(g.id)}>
               {g.label}
             </ChoiceCard>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-          <Btn variant="secondary" onClick={goBack} style={{ flex: 1 }}>← Retour</Btn>
-          <Btn onClick={goNext} accent="pro" disabled={!objectifPrincipal} style={{ flex: 2 }}>Continuer →</Btn>
-        </div>
-      </div>
+      </StepShell>
     );
   }
 
@@ -209,7 +215,12 @@ function OnbWizard({ onDone }) {
   if (step === 5) {
     function setFig(key, val) { setFigures(f => ({ ...f, [key]: val })); }
     return (
-      <div style={wrapStyle}>
+      <StepShell footer={
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Btn variant="secondary" onClick={goBack} style={{ flex: 1 }}>← Retour</Btn>
+          <Btn onClick={goNext} accent="pro" style={{ flex: 2 }}>Voir mon cockpit →</Btn>
+        </div>
+      }>
         <StepDots step={5} total={totalSteps} />
         <div style={{ fontSize: 11, color: '#7a7770', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Étape 5 / 6</div>
         <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.2, marginBottom: 4 }}>Quelques chiffres clés</div>
@@ -236,12 +247,7 @@ function OnbWizard({ onDone }) {
         <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4, marginTop: 4 }}>INVESTISSEMENTS</div>
         <Input label="Total investi (ETF, crypto…)" value={figures.investTotal || ''} onChange={v => setFig('investTotal', v)} placeholder="0" suffix="€" type="number" />
         <Input label="DCA mensuel total" value={figures.dcaTotal || ''} onChange={v => setFig('dcaTotal', v)} placeholder="0" suffix="€/mois" type="number" />
-
-        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-          <Btn variant="secondary" onClick={goBack} style={{ flex: 1 }}>← Retour</Btn>
-          <Btn onClick={goNext} accent="pro" style={{ flex: 2 }}>Voir mon cockpit →</Btn>
-        </div>
-      </div>
+      </StepShell>
     );
   }
 
@@ -251,7 +257,7 @@ function OnbWizard({ onDone }) {
     const toneCol = toneColor(previewInsightTone);
 
     return (
-      <div style={wrapStyle}>
+      <StepShell footer={<Btn onClick={handleFinish}>Entrer dans le cockpit →</Btn>}>
         <StepDots step={6} total={totalSteps} />
         <div style={{ fontSize: 11, color: '#7a7770', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Étape 6 / 6</div>
         <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.2, marginBottom: 14 }}>Voilà ton point de départ.</div>
@@ -286,11 +292,7 @@ function OnbWizard({ onDone }) {
             → Créer tes objectifs financiers
           </div>
         </Card>
-
-        <div style={{ marginTop: 8 }}>
-          <Btn onClick={handleFinish}>Entrer dans le cockpit →</Btn>
-        </div>
-      </div>
+      </StepShell>
     );
   }
 
