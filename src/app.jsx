@@ -70,8 +70,8 @@ function MainApp() {
   }
 
   return (
-    <div style={{ position: 'relative', height: '100%', overflow: 'hidden' }}>
-      <div style={{ height: '100%' }}>
+    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: '0 0 72px 0', overflowY: 'auto' }}>
         {screenContent}
       </div>
       <BottomTabs active={activeTab} onTab={nav.tab} />

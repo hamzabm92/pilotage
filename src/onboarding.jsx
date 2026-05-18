@@ -49,11 +49,11 @@ function OnbWizard({ onDone }) {
   // Shell: scrollable content area + sticky footer buttons
   function StepShell({ footer, children }) {
     return (
-      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', fontFamily: 'Inter, system-ui, sans-serif' }}>
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 8px' }}>
           {children}
         </div>
-        <div style={{ padding: '10px 20px 32px', background: '#FAF8F1', borderTop: '1px solid #f0ede6' }}>
+        <div style={{ flexShrink: 0, padding: '10px 20px 32px', background: '#FAF8F1', borderTop: '1px solid #f0ede6' }}>
           {footer}
         </div>
       </div>
